@@ -1,5 +1,6 @@
 /* eslint-disable */
 import DBClient from '../utils/db';
+import RedisClient from '../utils/redis';
 import { v4 as uuidv4 } from 'uuid';
 
 const { ObjectId } = require('mongodb');
@@ -10,8 +11,11 @@ class FilesController {
         const token = req.header('X-Token') || null;
         if (!token) return res.status(401).send({ error: 'Unauthorized' });
 
+        const redisToken = await RedisClient.get(`auth_${token}`);
+        if (!redisToken) return res.status(401).send({ error: 'Unauthorized' });
+
         const user = await DBClient.database.collection('users').findOne({ _id: ObjectId(redisToken) });
-        if (!user) return response.status(401).send({ error: 'Unauthorized' });
+        if (!user) return res.status(401).send({ error: 'Unauthorized' });
 
         const { name, type, parentId, isPublic, data } = req.body;
 
@@ -51,10 +55,10 @@ class FilesController {
               });
         } else {
             const path = process.env.FOLDER_PATH || '/tmp/files_manager';
-            const fileUuid = uuidv4();
+            const fileNewId = uuidv4();
 
             const buff = Buffer.from(fileData, 'base64');
-            const pathFile = `${path}/${fileUuid}`;
+            const pathFile = `${path}/${fileNewId}`;
 
             await fs.mkdir(pathDir, { recursive: true }, (error) => {
                 if (error) return res.status(400).send({ error: error.message });
@@ -69,7 +73,7 @@ class FilesController {
             fileData.localPath = pathFile;
             const createdData = await DBClient.database.collection('files').insertOne({ ...fileData });
 
-            return response.status(201).send({
+            return res.status(201).send({
                 id: createdData._id,
                 userId: createdData.userId,
                 name: createdData.name,
@@ -78,6 +82,36 @@ class FilesController {
                 parentId: createdData.parentId,
             });
         }
+    }
+
+    static async getShow(req, res) {
+        const token = req.header('X-Token') || null;
+        if (!token) return res.status(401).send({ error: 'Unauthorized' });
+
+        const redisToken = await RedisClient.get(`auth_${token}`);
+        if (!redisToken) return res.status(401).send({ error: 'Unauthorized' });
+    
+        const user = await DBClient.database.collection('users').findOne({ _id: ObjectId(redisToken) });
+        if (!user) return res.status(401).send({ error: 'Unauthorized' });
+    
+        const FileId = req.params.id || '';
+    
+        const Document = await DBClient.database.collection('files').findOne({ _id: ObjectId(FileId), userId: user._id });
+        if (!Document) return res.status(404).send({ error: 'Not found' });
+    
+        return res.send({
+          id: Document._id,
+          userId: Document.userId,
+          name: Document.name,
+          type: Document.type,
+          isPublic: Document.isPublic,
+          parentId: Document.parentId,
+        });
+
+    }
+
+    static async getIndex() {
+        
     }
 }
 
