@@ -16,8 +16,8 @@ class UsersController {
 
         const securedPassword = sha1(req.body.password);
 
-        await DBClient.database.collection('users').insertOne({ email: req.body.email, password: securedPassword });
-        return response.status(201).send({ id: result.insertedId, email: req.body.email });
+        const userCreated = await DBClient.database.collection('users').insertOne({ email: req.body.email, password: securedPassword });
+        return res.status(201).send({ id: userCreated.insertedId, email: req.body.email });
     }
 
     static async getMe(req, res) {
