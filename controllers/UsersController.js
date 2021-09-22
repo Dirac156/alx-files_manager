@@ -3,7 +3,7 @@ import sha1 from 'sha1';
 import DBClient from '../utils/db';
 import RedisClient from '../utils/redis';
 
-class UsersController{
+class UsersController {
     static async postNew(req, res) {
         if (!req.body.email) return res.status(400).send({ error: 'Missing email' });
 
@@ -18,6 +18,10 @@ class UsersController{
         await DBClient.database.collection('users').insertOne({ email: req.body.email, password: securedPassword });
         return response.status(201).send({ id: result.insertedId, email: req.body.email });
     }
+
+    static getMe() {
+        
+    }
 }
 
-export default UsersController;
+export default UsersController ;
