@@ -1,5 +1,6 @@
 /* eslint-disable */
-const redis = require("redis");
+const redis = require('redis');
+const { promisify } = require('util');
 
 class RedisClient {
     constructor() {
