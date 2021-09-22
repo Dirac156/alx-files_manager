@@ -13,7 +13,6 @@ class UsersController {
         if (!password) return res.status(400).send({ error: 'Missing password'});
 
         const ExistingEmail = DBClient.database.collection('users').findOne({ email: email });
-
         if (ExistingEmail) return res.status(400).send({ error: 'Already exist'});
 
         const securedPassword = sha1(password);
