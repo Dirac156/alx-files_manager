@@ -111,7 +111,36 @@ class FilesController {
     }
 
     static async getIndex() {
-        
+        const token = req.header('X-Token') || null;
+        if (!token) return res.status(401).send({ error: 'Unauthorized' });
+
+        const redisToken = await RedisClient.get(`auth_${token}`);
+        if (!redisToken) return res.status(401).send({ error: 'Unauthorized' });
+
+        const user = await DBClient.database.collection('users').findOne({ _id: ObjectId(redisToken) });
+        if (!user) return res.status(401).send({ error: 'Unauthorized' });
+    }
+
+    static async putPublish() {
+        const token = req.header('X-Token') || null;
+        if (!token) return res.status(401).send({ error: 'Unauthorized' });
+
+        const redisToken = await RedisClient.get(`auth_${token}`);
+        if (!redisToken) return res.status(401).send({ error: 'Unauthorized' });
+
+        const user = await DBClient.database.collection('users').findOne({ _id: ObjectId(redisToken) });
+        if (!user) return res.status(401).send({ error: 'Unauthorized' });
+    }
+
+    static async putUnpublish() {
+        const token = req.header('X-Token') || null;
+        if (!token) return res.status(401).send({ error: 'Unauthorized' });
+
+        const redisToken = await RedisClient.get(`auth_${token}`);
+        if (!redisToken) return res.status(401).send({ error: 'Unauthorized' });
+
+        const user = await DBClient.database.collection('users').findOne({ _id: ObjectId(redisToken) });
+        if (!user) return res.status(401).send({ error: 'Unauthorized' });
     }
 }
 
